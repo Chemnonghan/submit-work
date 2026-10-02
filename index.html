@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ส่งงาน ครูบุ๊ค</title>
+<style>
+  :root{
+    --bg:#f4f6fb; --card:#fff; --ink:#1d2433; --muted:#667085; --line:#e3e7ef;
+    --brand:#2f6df6; --ok:#16a34a; --okbg:#e8f7ee; --err:#dc2626; --errbg:#fdecec; --warn:#b45309; --warnbg:#fff4e0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0f1420; --card:#181f2e; --ink:#e8ecf5; --muted:#9aa5ba; --line:#2a3347;
+      --okbg:#12301e; --errbg:#3a1717; --warnbg:#3a2a10; --brand:#5b8cff; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Sarabun","Noto Sans Thai",system-ui,sans-serif;font-size:17px;line-height:1.5}
+  .wrap{max-width:560px;margin:0 auto;padding:20px 16px 60px}
+  h1{font-size:1.5rem;margin:8px 0 4px}
+  .sub{color:var(--muted);margin:0 0 18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px}
+  label{display:block;font-weight:600;margin:14px 0 6px}
+  label:first-child{margin-top:0}
+  select,input[type=text],input[type=number]{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;font:inherit;background:var(--bg);color:var(--ink)}
+  .row{display:grid;grid-template-columns:110px 1fr;gap:10px}
+  .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .seg input{position:absolute;opacity:0}
+  .seg label{margin:0;text-align:center;padding:11px 4px;border:1px solid var(--line);border-radius:10px;cursor:pointer;font-weight:600;background:var(--bg)}
+  .seg input:checked+label{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .seg input:focus-visible+label{outline:3px solid var(--brand);outline-offset:2px}
+  .drop{border:2px dashed var(--line);border-radius:12px;padding:22px 12px;text-align:center;color:var(--muted);cursor:pointer;background:var(--bg)}
+  .drop.on{border-color:var(--brand);color:var(--ink)}
+  .drop b{color:var(--ink)}
+  .fname{margin-top:14px;padding:10px 12px;border-radius:10px;background:var(--bg);border:1px solid var(--line);word-break:break-all}
+  .fname small{display:block;color:var(--muted)}
+  button.go{width:100%;margin-top:16px;padding:14px;border:0;border-radius:12px;background:var(--brand);color:#fff;font:inherit;font-weight:700;font-size:1.05rem;cursor:pointer}
+  button.go:disabled{opacity:.5;cursor:not-allowed}
+  .msg{margin-top:14px;padding:12px 14px;border-radius:10px;display:none}
+  .msg.ok{display:block;background:var(--okbg);color:var(--ok)}
+  .msg.err{display:block;background:var(--errbg);color:var(--err)}
+  .msg.warn{display:block;background:var(--warnbg);color:var(--warn)}
+  .bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:14px;display:none}
+  .bar i{display:block;height:100%;width:0;background:var(--brand);transition:width .2s}
+  .head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .head h2{font-size:1.1rem;margin:0}
+  .ghost{background:none;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font:inherit;cursor:pointer}
+  ul.list{list-style:none;margin:12px 0 0;padding:0;max-height:320px;overflow:auto}
+  ul.list li{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}
+  ul.list li span:last-child{color:var(--muted);font-size:.9rem}
+  .count{color:var(--muted);font-size:.95rem;margin-top:6px}
+  .note{font-size:.9rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📥 ส่งงานวิชาเคมี</h1>
+  <p class="sub">ครูบุ๊ค · โรงเรียนหนองหานวิทยา</p>
+
+  <div class="card">
+    <label>ชนิดงาน</label>
+    <div class="seg" id="workSeg"></div>
+
+    <label for="room">ห้องเรียน</label>
+    <select id="room"></select>
+
+    <label for="student">เลือกเลขที่ / ชื่อของตัวเอง</label>
+    <select id="student" disabled><option>กำลังโหลดรายชื่อ…</option></select>
+
+    <label>ไฟล์ PDF</label>
+    <div class="drop" id="drop" tabindex="0" role="button" aria-label="เลือกไฟล์ PDF">
+      <div id="dropText">แตะเพื่อเลือกไฟล์ <b>PDF</b> (ไม่เกิน 20 MB)</div>
+    </div>
+    <input id="file" type="file" accept="application/pdf,.pdf" hidden>
+
+    <div class="fname"><small>ชื่อไฟล์ที่จะบันทึก</small><span id="preview">—</span></div>
+    <p class="note">ระบบตั้งชื่อไฟล์ให้อัตโนมัติ ไม่ต้องเปลี่ยนชื่อเอง · ถ้าส่งซ้ำเลขที่เดิม ไฟล์ใหม่จะแทนที่ไฟล์เก่า</p>
+
+    <div class="bar" id="bar"><i></i></div>
+    <button class="go" id="go" disabled>ส่งงาน</button>
+    <div class="msg" id="msg" role="status"></div>
+  </div>
+
+  <div class="card">
+    <div class="head">
+      <h2>สถานะการส่งงาน</h2>
+      <button class="ghost" id="refresh">รีเฟรช</button>
+    </div>
+    <div class="count" id="count">กำลังโหลด…</div>
+    <ul class="list" id="list"></ul>
+  </div>
+</div>
+
+<script>
+// ===== ตั้งค่า: วาง URL ของ Web App จาก Apps Script ตรงนี้ =====
+const API_URL = 'https://script.google.com/macros/s/AKfycbzZ2tbPDCfttfXGkv1hPOzm_XuVfhmSk2TfERHXmxCGsvxo56sowC2bBnF6t32qZxb27A/exec';
+
+const WORKS = {
+  'ชีทแดง':  ['ม.6/2', 'ม.6/4', 'ม.6/6'],
+  'ชีทเขียว': ['ม.6/2', 'ม.6/4', 'ม.6/6'],
+  'งานสมุด': ['ม.2/16', 'ม.2/17', 'ม.1/1']
+};
+const MAX = 20 * 1024 * 1024;
+const $ = id => document.getElementById(id);
+let work = Object.keys(WORKS)[0];
+
+// ชนิดงาน
+const seg = $('workSeg');
+Object.keys(WORKS).forEach((w, i) => {
+  seg.insertAdjacentHTML('beforeend',
+    `<input type="radio" name="work" id="w${i}" value="${w}" ${i===0?'checked':''}><label for="w${i}">${w}</label>`);
+});
+seg.addEventListener('change', e => { work = e.target.value; fillRooms(); });
+
+function fillRooms(){
+  $('room').innerHTML = WORKS[work].map(r => `<option>${r}</option>`).join('');
+  update(); loadStatus();
+}
+$('room').addEventListener('change', () => { update(); loadStatus(); });
+
+// ไฟล์
+$('drop').addEventListener('click', () => $('file').click());
+$('drop').addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){e.preventDefault();$('file').click();} });
+$('drop').addEventListener('dragover', e => e.preventDefault());
+$('drop').addEventListener('drop', e => { e.preventDefault(); if(e.dataTransfer.files[0]){ $('file').files = e.dataTransfer.files; update(); } });
+$('file').addEventListener('change', update);
+$('student').addEventListener('change', update);
+
+let students = [];
+function fileNameNow(){
+  const st = students.find(x => String(x.no) === $('student').value);
+  if(!st) return '';
+  return String(st.no).padStart(2,'0') + '_' + st.name + '_' + work + '.pdf';
+}
+
+function show(type, text){
+  const m = $('msg'); m.className = 'msg ' + type; m.textContent = text;
+}
+
+function update(){
+  const f = $('file').files[0];
+  $('preview').textContent = fileNameNow() || '— (เลือกชื่อของตัวเอง)';
+  $('drop').classList.toggle('on', !!f);
+  $('dropText').innerHTML = f
+    ? `📄 <b>${f.name}</b> (${(f.size/1048576).toFixed(2)} MB)`
+    : 'แตะเพื่อเลือกไฟล์ <b>PDF</b> (ไม่เกิน 20 MB)';
+  let problem = '';
+  if(f && !/\.pdf$/i.test(f.name)) problem = 'ต้องเป็นไฟล์ .pdf เท่านั้น';
+  else if(f && f.size > MAX) problem = 'ไฟล์ใหญ่เกิน 20 MB';
+  if(problem) show('err', problem); else if($('msg').classList.contains('err')) $('msg').className='msg';
+  $('go').disabled = !(f && !problem && fileNameNow());
+}
+
+function toBase64(file){
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(String(r.result).split(',')[1]);
+    r.onerror = () => rej(new Error('อ่านไฟล์ไม่ได้'));
+    r.readAsDataURL(file);
+  });
+}
+
+function setBar(p){ $('bar').style.display = p===null ? 'none':'block'; if(p!==null) $('bar').firstElementChild.style.width = p+'%'; }
+
+$('go').addEventListener('click', async () => {
+  if(API_URL.indexOf('http') !== 0){ show('err','ครูยังไม่ได้ตั้งค่า API_URL ในไฟล์'); return; }
+  const f = $('file').files[0];
+  $('go').disabled = true; show('warn','⏳ กำลังอัปโหลด กรุณาอย่าปิดหน้านี้…'); setBar(15);
+  try{
+    const data = await toBase64(f); setBar(40);
+    const payload = { work, room: $('room').value, no: $('student').value, data };
+    const res = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload) });
+    setBar(90);
+    const out = await res.json();
+    if(!out.ok) throw new Error(out.error || 'ส่งไม่สำเร็จ');
+    setBar(100);
+    show('ok', (out.replaced ? '✅ ส่งสำเร็จ (แทนที่ไฟล์เดิมแล้ว): ' : '✅ ส่งสำเร็จ: ') + out.fileName);
+    $('file').value = ''; update(); loadStatus();
+  }catch(err){
+    show('err','❌ ' + (err.message || err) + ' — ลองส่งใหม่อีกครั้ง');
+  }finally{
+    setTimeout(() => setBar(null), 800); update();
+  }
+});
+
+// รายชื่อ + สถานะ
+async function loadStatus(){
+  const room = $('room').value, keep = $('student').value;
+  $('count').textContent = 'กำลังโหลด…'; $('list').innerHTML = '';
+  if(API_URL.indexOf('http') !== 0){ $('count').textContent = 'ยังไม่ได้ตั้งค่า API_URL'; return; }
+  try{
+    const res = await fetch(`${API_URL}?work=${encodeURIComponent(work)}&room=${encodeURIComponent(room)}`);
+    const out = await res.json();
+    if(!out.ok) throw new Error(out.error);
+    students = out.students;
+    const done = students.filter(x => x.time).length;
+    $('student').disabled = false;
+    $('student').innerHTML = '<option value="">— เลือก —</option>' + students.map(x =>
+      `<option value="${x.no}">${String(x.no).padStart(2,'0')} · ${x.name}${x.time ? ' ✓' : ''}</option>`).join('');
+    if(keep) $('student').value = keep;
+    $('count').textContent = `${work} · ${room} · ส่งแล้ว ${done} จาก ${students.length} คน`;
+    $('list').innerHTML = students.map(x =>
+      `<li><span>${x.time ? '✅' : '⬜'} ${String(x.no).padStart(2,'0')} · ${x.name}</span><span>${x.time || 'ยังไม่ส่ง'}</span></li>`).join('');
+    update();
+  }catch(err){
+    $('count').textContent = 'โหลดรายชื่อ/สถานะไม่สำเร็จ';
+  }
+}
+$('refresh').addEventListener('click', loadStatus);
+
+fillRooms();
+</script>
+</body>
+</html>
